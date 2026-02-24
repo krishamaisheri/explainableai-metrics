@@ -52,7 +52,18 @@ def call_llm(prompt: str, *, model: str | None = None, max_retries: int = 3) -> 
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
             )
-            return response.choices[0].message.content.strip()
+            content = response.choices[0].message.content.strip()
+            
+            # Print to console for visibility
+            print("\n" + "="*80)
+            print(f"DEBUG LLM CALL [{model}]")
+            print("-"*80)
+            print(f"PROMPT:\n{prompt}")
+            print("-"*80)
+            print(f"RESPONSE:\n{content}")
+            print("="*80 + "\n")
+            
+            return content
         except Exception as exc:
             logger.warning("LLM call attempt %d/%d failed: %s", attempt, max_retries, exc)
             if attempt == max_retries:

@@ -2,6 +2,10 @@
 logs/
 *.jsonl
 
+# ChromaDB / vector store
+chroma_db/
+extracted/
+
 # Python
 __pycache__/
 *.pyc
