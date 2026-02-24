@@ -1,0 +1,17 @@
+# Logs
+logs/
+*.jsonl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.egg-info/
+dist/
+build/
+.env.example
+
+# IDE
+.vscode/
+.idea/
