@@ -52,7 +52,15 @@ def compute(query: str, explanation: str, **_kwargs) -> float:
             _CONTRADICTION_PROMPT.format(fact=fact, explanation=explanation),
             model=None,  # uses default NLI_MODEL via config
         )
-        if result.get("contradicts", False):
+        val = result.get("contradicts")
+        
+        # Robust boolean conversion (handles strings like "false", "true")
+        if isinstance(val, str):
+            is_contradiction = val.lower() == "true"
+        else:
+            is_contradiction = bool(val)
+
+        if is_contradiction:
             contradictions += 1
 
     return 1.0 - (contradictions / len(facts))

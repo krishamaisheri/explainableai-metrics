@@ -37,22 +37,18 @@ def aggregate(scores: dict[str, float]) -> dict:
     alerts = []
     thresholds = config.ALERT_THRESHOLDS
 
-    for metric_name, threshold in thresholds.items():
-        if metric_name == "Aggregate":
-            if weighted_sum < threshold:
-                alerts.append({
-                    "metric": "Aggregate",
-                    "score": round(weighted_sum, 4),
-                    "threshold": threshold,
-                })
-        else:
-            score = scores.get(metric_name, 0.0)
-            if score < threshold:
-                alerts.append({
-                    "metric": metric_name,
-                    "score": round(score, 4),
-                    "threshold": threshold,
-                })
+    for metric_name, levels in thresholds.items():
+        score = weighted_sum if metric_name == "Aggregate" else scores.get(metric_name, 0.0)
+        
+        if score < levels["green"]:
+            severity = "Red" if score < levels["amber"] else "Amber"
+            alerts.append({
+                "metric": metric_name,
+                "score": round(score, 4),
+                "threshold_green": levels["green"],
+                "threshold_amber": levels["amber"],
+                "severity": severity
+            })
 
     return {
         "metric_scores": {k: round(v, 4) for k, v in scores.items()},

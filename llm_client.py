@@ -58,8 +58,8 @@ def call_llm(prompt: str, *, model: str | None = None, max_retries: int = 3) -> 
             print("\n" + "="*80)
             print(f"DEBUG LLM CALL [{model}]")
             print("-"*80)
-            print(f"PROMPT:\n{prompt}")
-            print("-"*80)
+            #print(f"PROMPT:\n{prompt}")
+            #print("-"*80)
             print(f"RESPONSE:\n{content}")
             print("="*80 + "\n")
             
@@ -76,21 +76,21 @@ def call_llm_json(prompt: str, *, model: str | None = None) -> dict:
     Call the LLM and parse the response as JSON.
 
     The prompt **must** instruct the model to reply with valid JSON.
-    A lenient parser strips markdown fences before decoding.
+    A robust parser finds the first '{' and last '}' to handle filler text.
     """
     raw = call_llm(prompt, model=model)
 
-    # Strip common markdown fences the model may wrap around JSON
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        # Remove opening fence (```json or ```)
-        cleaned = cleaned.split("\n", 1)[-1] if "\n" in cleaned else cleaned[3:]
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3]
-    cleaned = cleaned.strip()
-
+    # Find the JSON block within the response
+    # This handles models that add conversational filler before/after the JSON
     try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        logger.error("Failed to parse LLM JSON response:\n%s", raw)
+        start_idx = raw.find("{")
+        end_idx = raw.rfind("}")
+        
+        if start_idx == -1 or end_idx == -1:
+            raise ValueError("No JSON object found in response")
+            
+        json_str = raw[start_idx : end_idx + 1]
+        return json.loads(json_str)
+    except (json.JSONDecodeError, ValueError) as exc:
+        logger.error("Failed to parse LLM JSON response: %s\nOriginal raw response:\n%s", exc, raw)
         raise

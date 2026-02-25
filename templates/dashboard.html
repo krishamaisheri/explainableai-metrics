@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Explainability Governance Dashboard</title>
-    <meta name="description" content="Real-time monitoring dashboard for RAG system explainability and transparency metrics">
+    <meta name="description"
+        content="Real-time monitoring dashboard for RAG system explainability and transparency metrics">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         /* ── Reset & Tokens ─────────────────────────────────── */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         :root {
             --bg-primary: #0b0e17;
             --bg-card: rgba(16, 21, 38, 0.75);
-            --bg-glass: rgba(255,255,255,0.04);
-            --border-glass: rgba(255,255,255,0.08);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --border-glass: rgba(255, 255, 255, 0.08);
             --accent: #6366f1;
-            --accent-glow: rgba(99,102,241,0.35);
+            --accent-glow: rgba(99, 102, 241, 0.35);
             --green: #34d399;
             --amber: #fbbf24;
             --red: #f87171;
@@ -26,6 +36,7 @@
             --radius: 16px;
             --font: 'Inter', -apple-system, sans-serif;
         }
+
         body {
             font-family: var(--font);
             background: var(--bg-primary);
@@ -33,28 +44,98 @@
             min-height: 100vh;
             line-height: 1.6;
         }
+
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse at 20% 0%, rgba(99,102,241,0.15) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 100%, rgba(52,211,153,0.08) 0%, transparent 50%);
+                radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(52, 211, 153, 0.08) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
         }
 
         /* ── Layout ─────────────────────────────────────────── */
-        .shell { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
-        header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
-        header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
-        header h1 span { background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-        .badge-ok { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
-        .badge-warn { background: rgba(251,191,36,0.12); color: var(--amber); border: 1px solid rgba(251,191,36,0.2); }
-        .badge-alert { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
-        .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .shell {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        header h1 span {
+            background: linear-gradient(135deg, var(--accent), var(--green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-ok {
+            background: rgba(52, 211, 153, 0.12);
+            color: var(--green);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+        }
+
+        .badge-warn {
+            background: rgba(251, 191, 36, 0.12);
+            color: var(--amber);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+        }
+
+        .badge-alert {
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
 
         /* ── Glass Cards ────────────────────────────────────── */
         .card {
@@ -66,300 +147,490 @@
             padding: 24px;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .card:hover { border-color: rgba(255,255,255,0.12); box-shadow: 0 0 24px rgba(99,102,241,0.08); }
-        .card-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 12px; }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 24px rgba(99, 102, 241, 0.08);
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
 
         /* ── Metric Grid ────────────────────────────────────── */
-        .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
-        .metric-card { text-align: center; }
-        .metric-value { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.03em; margin: 8px 0 4px; }
-        .metric-label { font-size: 0.78rem; color: var(--text-dim); font-weight: 500; }
-        .metric-weight { font-size: 0.65rem; color: var(--text-dim); opacity: 0.6; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 8px 0 4px;
+        }
+
+        .metric-label {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .metric-weight {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
 
         /* ── Aggregate Hero ─────────────────────────────────── */
-        .hero { display: grid; grid-template-columns: 280px 1fr; gap: 24px; margin-bottom: 28px; }
-        @media (max-width: 768px) { .hero { grid-template-columns: 1fr; } }
-        .agg-ring { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .ring-value { font-size: 3.6rem; font-weight: 800; letter-spacing: -0.04em; }
-        .ring-label { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+        .hero {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .agg-ring {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring-value {
+            font-size: 3.6rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .ring-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
 
         /* ── Chart ──────────────────────────────────────────── */
-        .chart-wrap { position: relative; height: 260px; }
-        canvas { width: 100% !important; }
+        .chart-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        canvas {
+            width: 100% !important;
+        }
 
         /* ── Tables ─────────────────────────────────────────── */
-        .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
-        @media (max-width: 900px) { .section-grid { grid-template-columns: 1fr; } }
-        table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-        th { text-align: left; color: var(--text-dim); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px; border-bottom: 1px solid var(--border-glass); }
-        td { padding: 10px 12px; border-bottom: 1px solid var(--border-glass); }
-        tr:last-child td { border-bottom: none; }
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 900px) {
+            .section-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-dim);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
 
         /* ── Evaluate Form ──────────────────────────────────── */
-        .eval-section { margin-bottom: 28px; }
-        .eval-form { display: flex; gap: 12px; }
+        .eval-section {
+            margin-bottom: 28px;
+        }
+
+        .eval-form {
+            display: flex;
+            gap: 12px;
+        }
+
         .eval-input {
-            flex: 1; padding: 12px 16px; border-radius: 12px;
-            background: var(--bg-glass); border: 1px solid var(--border-glass);
-            color: var(--text); font-family: var(--font); font-size: 0.9rem;
-            outline: none; transition: border-color 0.3s;
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
         }
-        .eval-input:focus { border-color: var(--accent); }
+
+        .eval-input:focus {
+            border-color: var(--accent);
+        }
+
         .eval-btn {
-            padding: 12px 28px; border-radius: 12px; border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            border: none;
             background: linear-gradient(135deg, var(--accent), #818cf8);
-            color: #fff; font-family: var(--font); font-weight: 600;
-            font-size: 0.9rem; cursor: pointer; transition: transform 0.15s, box-shadow 0.3s;
+            color: #fff;
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.3s;
         }
-        .eval-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); }
-        .eval-btn:active { transform: translateY(0); }
-        .eval-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .eval-result { margin-top: 16px; }
+
+        .eval-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .eval-btn:active {
+            transform: translateY(0);
+        }
+
+        .eval-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .eval-result {
+            margin-top: 16px;
+        }
+
         .eval-result pre {
-            background: var(--bg-glass); border: 1px solid var(--border-glass);
-            border-radius: 12px; padding: 16px; overflow-x: auto;
-            font-size: 0.8rem; line-height: 1.5; color: var(--text-dim);
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-dim);
         }
 
         /* ── Status Dot ─────────────────────────────────────── */
-        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-        .dot-green { background: var(--green); }
-        .dot-amber { background: var(--amber); }
-        .dot-red { background: var(--red); }
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .dot-green {
+            background: var(--green);
+        }
+
+        .dot-amber {
+            background: var(--amber);
+        }
+
+        .dot-red {
+            background: var(--red);
+        }
 
         /* ── Footer ─────────────────────────────────────────── */
-        footer { text-align: center; color: var(--text-dim); font-size: 0.72rem; padding: 32px 0 16px; opacity: 0.6; }
+        footer {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.72rem;
+            padding: 32px 0 16px;
+            opacity: 0.6;
+        }
     </style>
 </head>
+
 <body>
-<div class="shell">
+    <div class="shell">
 
-    <!-- Header -->
-    <header>
-        <h1>🛡️ <span>Explainability Governance</span> Dashboard</h1>
-        <div id="statusBadge" class="badge badge-ok">System Nominal</div>
-    </header>
+        <!-- Header -->
+        <header>
+            <h1>🛡️ <span>Explainability Governance</span> Dashboard</h1>
+            <div id="statusBadge" class="badge badge-ok">System Nominal</div>
+        </header>
 
-    <!-- Aggregate Hero + Trend Chart -->
-    <div class="hero">
-        <div class="card agg-ring" id="aggCard">
-            <div class="card-title">Aggregate Explainability Score</div>
-            <div class="ring-value" id="aggValue">—</div>
-            <div class="ring-label">Weighted composite of 8 metrics</div>
+        <!-- Aggregate Hero + Trend Chart -->
+        <div class="hero">
+            <div class="card agg-ring" id="aggCard">
+                <div class="card-title">Aggregate Explainability Score</div>
+                <div class="ring-value" id="aggValue">—</div>
+                <div class="ring-label">Weighted composite of 8 metrics</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Score Trend (Recent Interactions)</div>
+                <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+            </div>
         </div>
-        <div class="card">
-            <div class="card-title">Score Trend (Recent Interactions)</div>
-            <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+
+        <!-- Metric Cards -->
+        <div class="metric-grid" id="metricGrid">
+            <!-- Filled by JS -->
         </div>
-    </div>
 
-    <!-- Metric Cards -->
-    <div class="metric-grid" id="metricGrid">
-        <!-- Filled by JS -->
-    </div>
-
-    <!-- Evaluate -->
-    <div class="eval-section card">
-        <div class="card-title">Live Evaluation</div>
-        <form class="eval-form" id="evalForm">
-            <input class="eval-input" id="evalQuery" type="text" placeholder="Enter a citizen query to evaluate…" autocomplete="off">
-            <button class="eval-btn" type="submit" id="evalBtn">Evaluate</button>
-        </form>
-        <div class="eval-result" id="evalResult"></div>
-    </div>
-
-    <!-- Alerts & Escalations -->
-    <div class="section-grid">
-        <div class="card">
-            <div class="card-title">Recent Alerts</div>
-            <table id="alertTable">
-                <thead><tr><th>Time</th><th>Metric</th><th>Score</th><th>Threshold</th></tr></thead>
-                <tbody id="alertBody"><tr><td colspan="4" style="color:var(--text-dim)">No alerts</td></tr></tbody>
-            </table>
+        <!-- Evaluate -->
+        <div class="eval-section card">
+            <div class="card-title">Live Evaluation</div>
+            <form class="eval-form" id="evalForm">
+                <input class="eval-input" id="evalQuery" type="text" placeholder="Enter a citizen query to evaluate…"
+                    autocomplete="off">
+                <button class="eval-btn" type="submit" id="evalBtn">Evaluate</button>
+            </form>
+            <div class="eval-result" id="evalResult"></div>
         </div>
-        <div class="card">
-            <div class="card-title">Escalation Log</div>
-            <table id="escTable">
-                <thead><tr><th>Time</th><th>Aggregate</th><th>Status</th><th>Query</th></tr></thead>
-                <tbody id="escBody"><tr><td colspan="4" style="color:var(--text-dim)">No escalations</td></tr></tbody>
-            </table>
+
+        <!-- Alerts & Escalations -->
+        <div class="section-grid">
+            <div class="card">
+                <div class="card-title">Recent Alerts</div>
+                <table id="alertTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Metric</th>
+                            <th>Score</th>
+                            <th>Threshold</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertBody">
+                        <tr>
+                            <td colspan="4" style="color:var(--text-dim)">No alerts</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <div class="card-title">Escalation Log</div>
+                <table id="escTable">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Aggregate</th>
+                            <th>Status</th>
+                            <th>Query</th>
+                        </tr>
+                    </thead>
+                    <tbody id="escBody">
+                        <tr>
+                            <td colspan="4" style="color:var(--text-dim)">No escalations</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- Rolling Averages Radar -->
+        <div class="card" style="margin-bottom:28px">
+            <div class="card-title">Rolling Averages — Radar Profile</div>
+            <div class="chart-wrap" style="height:320px"><canvas id="radarChart"></canvas></div>
+        </div>
+
+        <footer>Explainability Metrics Governance System · UK Public Sector RAG · OpenRouter-powered</footer>
     </div>
 
-    <!-- Rolling Averages Radar -->
-    <div class="card" style="margin-bottom:28px">
-        <div class="card-title">Rolling Averages — Radar Profile</div>
-        <div class="chart-wrap" style="height:320px"><canvas id="radarChart"></canvas></div>
-    </div>
+    <script>
+        // ── Data injected from Flask ─────────────────────────────────
+        const scores = {{ scores_json | safe }};
+        const escalations = {{ escalations_json  | safe }};
+        const averages = {{ averages_json | safe }};
+        const thresholds = {{ thresholds_json | safe }};
+        const weights = {{ weights_json | safe }};
 
-    <footer>Explainability Metrics Governance System · UK Public Sector RAG · OpenRouter-powered</footer>
-</div>
+        const METRIC_NAMES = ['IACS', 'IRCS', 'EDAS', 'SECS', 'PGSS', 'ESI', 'EDR'];
+        const METRIC_LABELS = {
+            IACS: 'Input Attribution',
+            ICR: 'Contradiction Rate',
+            IRCS: 'Internal Consistency',
+            EDAS: 'Decision Alignment',
+            SECS: 'Struct. Completeness',
+            PGSS: 'Policy Grounding',
+            ESI: 'Stability Index',
+            EDR: 'Density Ratio',
+        };
 
-<script>
-// ── Data injected from Flask ─────────────────────────────────
-const scores     = {{ scores_json | safe }};
-const escalations= {{ escalations_json  | safe }};
-const averages   = {{ averages_json | safe }};
-const thresholds = {{ thresholds_json | safe }};
-const weights    = {{ weights_json | safe }};
+        // ── Helpers ──────────────────────────────────────────────────
+        function scoreColor(v, t) {
+            if (!t) return 'var(--text-dim)';
+            if (v >= t.green) return 'var(--green)';
+            if (v >= t.amber) return 'var(--amber)';
+            return 'var(--red)';
+        }
+        function dotClass(v, t) {
+            if (!t) return 'dot-green';
+            if (v >= t.green) return 'dot-green';
+            if (v >= t.amber) return 'dot-amber';
+            return 'dot-red';
+        }
+        function fmt(v) { return v != null ? v.toFixed(4) : '—'; }
+        function fmtTime(ts) {
+            if (!ts) return '—';
+            const d = new Date(ts);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
 
-const METRIC_NAMES = ['IACS','ICR','IRCS','EDAS','SECS','PGSS','ESI','EDR'];
-const METRIC_LABELS = {
-    IACS: 'Input Attribution',
-    ICR:  'Contradiction Rate',
-    IRCS: 'Internal Consistency',
-    EDAS: 'Decision Alignment',
-    SECS: 'Struct. Completeness',
-    PGSS: 'Policy Grounding',
-    ESI:  'Stability Index',
-    EDR:  'Density Ratio',
-};
+        // ── Aggregate Hero ──────────────────────────────────────────
+        const lastScore = scores.length ? scores[scores.length - 1] : null;
+        const aggVal = lastScore ? lastScore.aggregate_score : null;
+        const aggEl = document.getElementById('aggValue');
+        if (aggVal != null) {
+            aggEl.textContent = aggVal.toFixed(4);
+            aggEl.style.color = scoreColor(aggVal, thresholds.Aggregate);
+        } else {
+            aggEl.textContent = '—';
+        }
 
-// ── Helpers ──────────────────────────────────────────────────
-function scoreColor(v, t) {
-    if (v >= (t || 0.92)) return 'var(--green)';
-    if (v >= (t || 0.92) - 0.05) return 'var(--amber)';
-    return 'var(--red)';
-}
-function dotClass(v, t) {
-    if (v >= (t || 0.92)) return 'dot-green';
-    if (v >= (t || 0.92) - 0.05) return 'dot-amber';
-    return 'dot-red';
-}
-function fmt(v) { return v != null ? v.toFixed(4) : '—'; }
-function fmtTime(ts) {
-    if (!ts) return '—';
-    const d = new Date(ts);
-    return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-}
+        // Status badge
+        const badge = document.getElementById('statusBadge');
+        if (lastScore && lastScore.alerts && lastScore.alerts.some(a => a.severity === 'Red')) {
+            badge.className = 'badge badge-alert';
+            badge.textContent = '⚠ Critical Alerts';
+        } else if (lastScore && lastScore.alerts && lastScore.alerts.length > 0) {
+            badge.className = 'badge badge-warn';
+            badge.textContent = 'Amber Warning';
+        }
 
-// ── Aggregate Hero ──────────────────────────────────────────
-const lastScore = scores.length ? scores[scores.length - 1] : null;
-const aggVal = lastScore ? lastScore.aggregate_score : null;
-const aggEl = document.getElementById('aggValue');
-if (aggVal != null) {
-    aggEl.textContent = aggVal.toFixed(4);
-    aggEl.style.color = scoreColor(aggVal, thresholds.Aggregate);
-} else {
-    aggEl.textContent = '—';
-}
-
-// Status badge
-const badge = document.getElementById('statusBadge');
-if (lastScore && lastScore.alerts && lastScore.alerts.length > 0) {
-    badge.className = 'badge badge-alert';
-    badge.textContent = '⚠ Alerts Active';
-} else if (aggVal != null && aggVal < (thresholds.Aggregate || 0.92)) {
-    badge.className = 'badge badge-warn';
-    badge.textContent = 'Below Threshold';
-}
-
-// ── Metric Cards ────────────────────────────────────────────
-const grid = document.getElementById('metricGrid');
-METRIC_NAMES.forEach(name => {
-    const val = lastScore ? (lastScore.metric_scores[name] ?? null) : null;
-    const t = thresholds[name];
-    const w = weights[name];
-    const card = document.createElement('div');
-    card.className = 'card metric-card';
-    card.innerHTML = `
+        // ── Metric Cards ────────────────────────────────────────────
+        const grid = document.getElementById('metricGrid');
+        METRIC_NAMES.forEach(name => {
+            const val = lastScore ? (lastScore.metric_scores[name] ?? null) : null;
+            const t = thresholds[name];
+            const w = weights[name];
+            const card = document.createElement('div');
+            card.className = 'card metric-card';
+            card.innerHTML = `
         <div class="card-title">${METRIC_LABELS[name]}</div>
         <div class="metric-value" style="color:${val != null ? scoreColor(val, t) : 'var(--text-dim)'}">${fmt(val)}</div>
         <div class="metric-label">${name}</div>
-        <div class="metric-weight">Weight: ${(w*100).toFixed(0)}%${t ? ' · Threshold: '+t : ''}</div>
+        <div class="metric-weight">Weight: ${(w * 100).toFixed(0)}%${t ? ' · Threshold: ' + t.green : ''}</div>
     `;
-    grid.appendChild(card);
-});
+            grid.appendChild(card);
+        });
 
-// ── Trend Chart ─────────────────────────────────────────────
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: scores.map((_, i) => i + 1),
-        datasets: [{
-            label: 'Aggregate',
-            data: scores.map(s => s.aggregate_score),
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99,102,241,0.08)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 2,
-        }, {
-            label: 'Threshold',
-            data: scores.map(() => thresholds.Aggregate || 0.92),
-            borderColor: 'rgba(248,113,113,0.5)',
-            borderDash: [6, 4],
-            pointRadius: 0,
-            fill: false,
-        }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        scales: {
-            y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
-            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
-        },
-        plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } }
-    }
-});
-
-// ── Radar Chart ─────────────────────────────────────────────
-const radarCtx = document.getElementById('radarChart').getContext('2d');
-new Chart(radarCtx, {
-    type: 'radar',
-    data: {
-        labels: METRIC_NAMES.map(n => METRIC_LABELS[n]),
-        datasets: [{
-            label: 'Rolling Average',
-            data: METRIC_NAMES.map(n => averages[n] || 0),
-            borderColor: '#6366f1',
-            backgroundColor: 'rgba(99,102,241,0.15)',
-            pointBackgroundColor: '#6366f1',
-        }, {
-            label: 'Latest',
-            data: METRIC_NAMES.map(n => lastScore ? (lastScore.metric_scores[n] || 0) : 0),
-            borderColor: '#34d399',
-            backgroundColor: 'rgba(52,211,153,0.1)',
-            pointBackgroundColor: '#34d399',
-        }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        scales: {
-            r: {
-                min: 0, max: 1,
-                grid: { color: 'rgba(255,255,255,0.06)' },
-                angleLines: { color: 'rgba(255,255,255,0.06)' },
-                pointLabels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } },
-                ticks: { display: false }
+        // ── Trend Chart ─────────────────────────────────────────────
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: scores.map((_, i) => i + 1),
+                datasets: [{
+                    label: 'Aggregate',
+                    data: scores.map(s => s.aggregate_score),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 2,
+                }, {
+                    label: 'Threshold',
+                    data: scores.map(() => thresholds.Aggregate.green),
+                    borderColor: 'rgba(248,113,113,0.5)',
+                    borderDash: [6, 4],
+                    pointRadius: 0,
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                },
+                plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } }
             }
-        },
-        plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } }
-    }
-});
+        });
 
-// ── Alert Table ─────────────────────────────────────────────
-const alertBody = document.getElementById('alertBody');
-const allAlerts = [];
-scores.forEach(s => {
-    (s.alerts || []).forEach(a => allAlerts.push({ ...a, timestamp: s.timestamp }));
-});
-if (allAlerts.length) {
-    alertBody.innerHTML = allAlerts.slice(-10).reverse().map(a => `
+        // ── Radar Chart ─────────────────────────────────────────────
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: METRIC_NAMES.map(n => METRIC_LABELS[n]),
+                datasets: [{
+                    label: 'Rolling Average',
+                    data: METRIC_NAMES.map(n => averages[n] || 0),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99,102,241,0.15)',
+                    pointBackgroundColor: '#6366f1',
+                }, {
+                    label: 'Latest',
+                    data: METRIC_NAMES.map(n => lastScore ? (lastScore.metric_scores[n] || 0) : 0),
+                    borderColor: '#34d399',
+                    backgroundColor: 'rgba(52,211,153,0.1)',
+                    pointBackgroundColor: '#34d399',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0, max: 1,
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        angleLines: { color: 'rgba(255,255,255,0.06)' },
+                        pointLabels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } },
+                        ticks: { display: false }
+                    }
+                },
+                plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } }
+            }
+        });
+
+        // ── Alert Table ─────────────────────────────────────────────
+        const alertBody = document.getElementById('alertBody');
+        const allAlerts = [];
+        scores.forEach(s => {
+            (s.alerts || []).forEach(a => allAlerts.push({ ...a, timestamp: s.timestamp }));
+        });
+        if (allAlerts.length) {
+            alertBody.innerHTML = allAlerts.slice(-10).reverse().map(a => `
         <tr>
             <td>${fmtTime(a.timestamp)}</td>
-            <td><span class="dot ${dotClass(a.score, a.threshold)}"></span>${a.metric}</td>
-            <td style="color:var(--red)">${fmt(a.score)}</td>
-            <td>${a.threshold}</td>
+            <td><span class="dot ${a.severity === 'Red' ? 'dot-red' : 'dot-amber'}"></span>${a.metric}</td>
+            <td style="color:${a.severity === 'Red' ? 'var(--red)' : 'var(--amber)'}">${fmt(a.score)}</td>
+            <td>${a.severity} (< ${a.threshold_amber ? a.threshold_green : '—'})</td>
         </tr>
     `).join('');
-}
+        }
 
-// ── Escalation Table ────────────────────────────────────────
-const escBody = document.getElementById('escBody');
-if (escalations.length) {
-    escBody.innerHTML = escalations.slice(-10).reverse().map(e => `
+        // ── Escalation Table ────────────────────────────────────────
+        const escBody = document.getElementById('escBody');
+        if (escalations.length) {
+            escBody.innerHTML = escalations.slice(-10).reverse().map(e => `
         <tr>
             <td>${fmtTime(e.timestamp)}</td>
             <td style="color:${scoreColor(e.aggregate_score)}">${fmt(e.aggregate_score)}</td>
@@ -367,33 +638,34 @@ if (escalations.length) {
             <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.query_preview || '—'}</td>
         </tr>
     `).join('');
-}
+        }
 
-// ── Live Evaluation ─────────────────────────────────────────
-document.getElementById('evalForm').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const q = document.getElementById('evalQuery').value.trim();
-    if (!q) return;
-    const btn = document.getElementById('evalBtn');
-    const res = document.getElementById('evalResult');
-    btn.disabled = true;
-    btn.textContent = 'Evaluating…';
-    res.innerHTML = '<pre style="color:var(--text-dim)">Running evaluation pipeline…</pre>';
-    try {
-        const resp = await fetch('/api/evaluate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: q })
+        // ── Live Evaluation ─────────────────────────────────────────
+        document.getElementById('evalForm').addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            const q = document.getElementById('evalQuery').value.trim();
+            if (!q) return;
+            const btn = document.getElementById('evalBtn');
+            const res = document.getElementById('evalResult');
+            btn.disabled = true;
+            btn.textContent = 'Evaluating…';
+            res.innerHTML = '<pre style="color:var(--text-dim)">Running evaluation pipeline…</pre>';
+            try {
+                const resp = await fetch('/api/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: q })
+                });
+                const data = await resp.json();
+                res.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (err) {
+                res.innerHTML = '<pre style="color:var(--red)">Error: ' + err.message + '</pre>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Evaluate';
+            }
         });
-        const data = await resp.json();
-        res.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-    } catch (err) {
-        res.innerHTML = '<pre style="color:var(--red)">Error: ' + err.message + '</pre>';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Evaluate';
-    }
-});
-</script>
+    </script>
 </body>
+
 </html>

@@ -59,7 +59,15 @@ def compute(_query: str, explanation: str, **_kwargs) -> float:
                     clause_a=clauses[i], clause_b=clauses[j]
                 )
             )
-            if result.get("contradicts", False):
+            val = result.get("contradicts")
+            
+            # Robust boolean conversion
+            if isinstance(val, str):
+                is_contradiction = val.lower() == "true"
+            else:
+                is_contradiction = bool(val)
+
+            if is_contradiction:
                 contradictory += 1
 
     return 1.0 - (contradictory / total_pairs)

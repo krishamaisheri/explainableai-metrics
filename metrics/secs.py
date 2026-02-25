@@ -48,5 +48,12 @@ def compute(_query: str, explanation: str, **_kwargs) -> float:
     result = llm_client.call_llm_json(
         _DETECT_PROMPT.format(explanation=explanation)
     )
-    present = sum(1 for c in _COMPONENTS if result.get(c, False))
+    present = 0
+    for c in _COMPONENTS:
+        val = result.get(c)
+        if isinstance(val, str):
+            if val.lower() == "true":
+                present += 1
+        elif bool(val):
+            present += 1
     return present / len(_COMPONENTS)
