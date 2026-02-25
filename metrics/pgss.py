@@ -12,6 +12,7 @@ from sentence_transformers import SentenceTransformer
 
 import config
 import llm_client
+from llm_client import trace_collector
 
 _model = None
 
@@ -63,14 +64,30 @@ def compute(
         supported (≥ threshold) by the policy corpus.
     """
     if not policy_texts:
+        trace_collector.set_trace("PGSS", {
+            "formula": "PGSS = (# supported clauses) / (total clauses)",
+            "note": "No policy texts available — score is 0.0",
+            "clauses": [],
+            "clause_similarities": [],
+            "score": 0.0,
+        })
         return 0.0
 
     # Segment explanation into clauses
     seg = llm_client.call_llm_json(
-        _SEGMENT_PROMPT.format(explanation=explanation)
+        _SEGMENT_PROMPT.format(explanation=explanation),
+        model=config.NLI_MODEL,
+        caller="PGSS",
     )
     clauses = seg.get("clauses", [])
     if not clauses:
+        trace_collector.set_trace("PGSS", {
+            "formula": "PGSS = (# supported clauses) / (total clauses)",
+            "note": "No clauses extracted — trivially grounded",
+            "clauses": [],
+            "clause_similarities": [],
+            "score": 1.0,
+        })
         return 1.0
 
     model = _get_embedding_model()
@@ -79,12 +96,34 @@ def compute(
 
     threshold = config.PGSS_SIMILARITY_THRESHOLD
     supported = 0
+    clause_details = []
 
-    for c_emb in clause_embeddings:
+    for idx, c_emb in enumerate(clause_embeddings):
         max_sim = max(
             _cosine_similarity(c_emb, p_emb) for p_emb in policy_embeddings
         )
-        if max_sim >= threshold:
+        is_supported = max_sim >= threshold
+        if is_supported:
             supported += 1
+        clause_details.append({
+            "clause": clauses[idx][:120],
+            "max_similarity": round(float(max_sim), 4),
+            "threshold": threshold,
+            "supported": is_supported,
+        })
 
-    return supported / len(clauses)
+    score = supported / len(clauses)
+
+    trace_collector.set_trace("PGSS", {
+        "formula": "PGSS = (# supported clauses) / (total clauses)",
+        "clauses": clauses,
+        "similarity_threshold": threshold,
+        "clause_similarities": clause_details,
+        "supported_count": supported,
+        "total_clauses": len(clauses),
+        "num_policy_docs": len(policy_texts),
+        "computation": f"{supported} / {len(clauses)} = {score:.4f}  (threshold ≥ {threshold})",
+        "score": score,
+    })
+
+    return score

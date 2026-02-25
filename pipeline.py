@@ -2,17 +2,23 @@
 End-to-end Pipeline.
 
 Query → RAG → Compute 8 metrics → Aggregate → Log → Return result.
+
+Supports:
+  - Single query: python pipeline.py "your query here"
+  - Structured colored output with LLM analytics
 """
 
 import logging
+import time
 from aggregator import compute_all_metrics
 from monitor import log_interaction
 import rag_pipeline
+import pretty_print
 
 logger = logging.getLogger(__name__)
 
 
-def evaluate(query: str) -> dict:
+def evaluate(query: str, *, silent: bool = False) -> dict:
     """
     Run the full explainability evaluation pipeline.
 
@@ -21,6 +27,13 @@ def evaluate(query: str) -> dict:
     3. Aggregate into a single score.
     4. Log the interaction.
     5. Return the structured result.
+
+    Parameters
+    ----------
+    query : str
+        The citizen's query.
+    silent : bool
+        If True, skip pretty-printing (useful for batch/API mode).
 
     Returns
     -------
@@ -31,8 +44,14 @@ def evaluate(query: str) -> dict:
             "metric_scores": {…},
             "aggregate_score": float,
             "alerts": […],
+            "metric_timings": {…},
+            "metric_failures": {…},
+            "llm_stats": {…},
+            "llm_global": {…},
         }
     """
+    pipeline_start = time.time()
+
     logger.info("Pipeline: generating explanation for query")
     context_chunks = rag_pipeline.retrieve(query)
     explanation = rag_pipeline.generate(query, context_chunks)
@@ -47,18 +66,24 @@ def evaluate(query: str) -> dict:
 
     log_interaction(result, query=query, explanation=explanation)
 
-    return {
+    pipeline_time = round(time.time() - pipeline_start, 3)
+
+    full_result = {
         "query": query,
         "explanation": explanation,
+        "pipeline_time": pipeline_time,
         **result,
     }
+
+    if not silent:
+        pretty_print.print_result(full_result, query=query)
+
+    return full_result
 
 
 if __name__ == "__main__":
     import sys
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARNING)
     q = " ".join(sys.argv[1:]) or "Am I eligible for council housing? I am 25 and have two children."
-    result = evaluate(q)
-    import json
-    print(json.dumps(result, indent=2))
+    evaluate(q)

@@ -10,7 +10,9 @@ Detects presence of four required explanation components:
     SECS = (# components present) / 4
 """
 
+import config
 import llm_client
+from llm_client import trace_collector
 
 _COMPONENTS = ["user_factors", "policy_rule", "logical_application", "decision_link"]
 
@@ -46,14 +48,33 @@ def compute(_query: str, explanation: str, **_kwargs) -> float:
         components are present.
     """
     result = llm_client.call_llm_json(
-        _DETECT_PROMPT.format(explanation=explanation)
+        _DETECT_PROMPT.format(explanation=explanation),
+        model=config.NLI_MODEL,
+        caller="SECS",
     )
+
+    component_results = {}
     present = 0
     for c in _COMPONENTS:
         val = result.get(c)
         if isinstance(val, str):
-            if val.lower() == "true":
-                present += 1
-        elif bool(val):
+            is_present = val.lower() == "true"
+        else:
+            is_present = bool(val)
+        component_results[c] = is_present
+        if is_present:
             present += 1
-    return present / len(_COMPONENTS)
+
+    score = present / len(_COMPONENTS)
+
+    trace_collector.set_trace("SECS", {
+        "formula": "SECS = (# components present) / 4",
+        "components_checked": _COMPONENTS,
+        "component_results": component_results,
+        "present_count": present,
+        "total_components": len(_COMPONENTS),
+        "computation": f"{present} / {len(_COMPONENTS)} = {score:.4f}",
+        "score": score,
+    })
+
+    return score

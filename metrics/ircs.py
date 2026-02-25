@@ -8,7 +8,9 @@ contradict each other.
     where T = contradictory pairs, P = k(k−1)/2
 """
 
+import config
 import llm_client
+from llm_client import trace_collector
 
 _SEGMENT_PROMPT = """\
 Segment the following EXPLANATION into individual reasoning clauses.
@@ -42,32 +44,62 @@ def compute(_query: str, explanation: str, **_kwargs) -> float:
         Score in [0, 1].  1.0 means no internal contradictions.
     """
     seg_result = llm_client.call_llm_json(
-        _SEGMENT_PROMPT.format(explanation=explanation)
+        _SEGMENT_PROMPT.format(explanation=explanation),
+        model=config.NLI_MODEL,
+        caller="IRCS",
     )
     clauses = seg_result.get("clauses", [])
     k = len(clauses)
     if k < 2:
-        return 1.0  # can't contradict with fewer than 2 clauses
+        trace_collector.set_trace("IRCS", {
+            "formula": "IRCS = 1 − T / P  where T=contradictory pairs, P=k(k−1)/2",
+            "note": f"Only {k} clause(s) found — can't contradict",
+            "clauses": clauses,
+            "pair_checks": [],
+            "score": 1.0,
+        })
+        return 1.0
 
     total_pairs = k * (k - 1) // 2
     contradictory = 0
+    pair_checks = []
 
     for i in range(k):
         for j in range(i + 1, k):
             result = llm_client.call_llm_json(
                 _PAIR_CONTRADICTION_PROMPT.format(
                     clause_a=clauses[i], clause_b=clauses[j]
-                )
+                ),
+                model=config.NLI_MODEL,
+                caller="IRCS",
             )
             val = result.get("contradicts")
-            
-            # Robust boolean conversion
+
             if isinstance(val, str):
                 is_contradiction = val.lower() == "true"
             else:
                 is_contradiction = bool(val)
 
+            pair_checks.append({
+                "clause_a": clauses[i][:100],
+                "clause_b": clauses[j][:100],
+                "contradicts": is_contradiction,
+            })
+
             if is_contradiction:
                 contradictory += 1
 
-    return 1.0 - (contradictory / total_pairs)
+    score = 1.0 - (contradictory / total_pairs)
+
+    trace_collector.set_trace("IRCS", {
+        "formula": "IRCS = 1 − T / P  where T=contradictory pairs, P=k(k−1)/2",
+        "clauses": clauses,
+        "num_clauses": k,
+        "total_pairs": total_pairs,
+        "contradictory_pairs": contradictory,
+        "pair_checks": pair_checks,
+        "computation": f"1 − ({contradictory} / {total_pairs}) = {score:.4f}",
+        "score": score,
+    })
+
+    return score

@@ -7,7 +7,9 @@ relevant attributes from the user query.
     IACS = |A_E ∩ A_Q| / |A_Q|
 """
 
+import config
 import llm_client
+from llm_client import trace_collector
 
 _EXTRACT_PROMPT = """\
 You are an attribute extractor.  Given the TEXT below, list every
@@ -22,7 +24,11 @@ TEXT:
 
 def _extract_attributes(text: str) -> list[str]:
     """Return a list of normalised attribute strings from *text*."""
-    result = llm_client.call_llm_json(_EXTRACT_PROMPT.format(text=text))
+    result = llm_client.call_llm_json(
+        _EXTRACT_PROMPT.format(text=text),
+        model=config.NLI_MODEL,
+        caller="IACS",
+    )
     attrs = result.get("attributes", [])
     return [a.strip().lower() for a in attrs if a.strip()]
 
@@ -39,8 +45,27 @@ def compute(query: str, explanation: str, **_kwargs) -> float:
     """
     a_q = set(_extract_attributes(query))
     if not a_q:
-        return 1.0  # nothing to attribute → trivially consistent
+        trace_collector.set_trace("IACS", {
+            "formula": "IACS = |A_E ∩ A_Q| / |A_Q|",
+            "note": "No attributes found in query → trivially consistent",
+            "query_attributes": [],
+            "explanation_attributes": [],
+            "overlap": [],
+            "score": 1.0,
+        })
+        return 1.0
 
     a_e = set(_extract_attributes(explanation))
     overlap = a_q & a_e
-    return len(overlap) / len(a_q)
+    score = len(overlap) / len(a_q)
+
+    trace_collector.set_trace("IACS", {
+        "formula": "IACS = |A_E ∩ A_Q| / |A_Q|",
+        "query_attributes": sorted(a_q),
+        "explanation_attributes": sorted(a_e),
+        "overlap": sorted(overlap),
+        "computation": f"|{sorted(overlap)}| / |{sorted(a_q)}| = {len(overlap)} / {len(a_q)} = {score:.4f}",
+        "score": score,
+    })
+
+    return score

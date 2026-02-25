@@ -4,6 +4,7 @@ RAG Pipeline — ChromaDB Edition.
 Query → Retrieve top-k policy chunks from ChromaDB → Generate explanation.
 """
 
+import config
 import vector_store
 import llm_client
 
@@ -47,7 +48,11 @@ CITIZEN QUERY:
 
 ANSWER:"""
 
-    return llm_client.call_llm(prompt)
+    return llm_client.call_llm(
+        prompt,
+        model=config.REASONING_MODEL,
+        caller="RAG_GENERATION",
+    )
 
 
 def get_policy_texts() -> list[str]:
